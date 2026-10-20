@@ -1,0 +1,34 @@
+apiVersion: v1
+data:
+  OLD_SETTING: "1"
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: shop
+    meta.helm.sh/release-namespace: shop
+  creationTimestamp: "2026-10-20T10:04:13Z"
+  managedFields:
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:annotations:
+          .: {}
+          f:meta.helm.sh/release-name: {}
+          f:meta.helm.sh/release-namespace: {}
+    manager: kubectl-annotate
+    operation: Update
+    time: "2026-10-20T10:04:13Z"
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:data:
+        .: {}
+        f:OLD_SETTING: {}
+    manager: kubectl-create
+    operation: Update
+    time: "2026-10-20T10:04:13Z"
+  name: shop-legacy
+  namespace: shop
+  resourceVersion: "816"
+  uid: f4ac2b31-7558-4d8e-b47b-010ce850a6e8

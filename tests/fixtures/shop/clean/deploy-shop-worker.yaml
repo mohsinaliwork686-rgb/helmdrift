@@ -1,0 +1,170 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    meta.helm.sh/release-name: shop
+    meta.helm.sh/release-namespace: shop
+  creationTimestamp: "2026-10-20T10:03:06Z"
+  generation: 2
+  labels:
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/instance: shop
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: shop
+    helm.sh/chart: shop-0.1.0
+  managedFields:
+  - apiVersion: apps/v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:annotations:
+          f:meta.helm.sh/release-name: {}
+          f:meta.helm.sh/release-namespace: {}
+        f:labels:
+          f:app.kubernetes.io/component: {}
+          f:app.kubernetes.io/instance: {}
+          f:app.kubernetes.io/managed-by: {}
+          f:app.kubernetes.io/name: {}
+          f:helm.sh/chart: {}
+      f:spec:
+        f:selector: {}
+        f:template:
+          f:metadata:
+            f:labels:
+              f:app.kubernetes.io/component: {}
+              f:app.kubernetes.io/instance: {}
+          f:spec:
+            f:containers:
+              k:{"name":"worker"}:
+                .: {}
+                f:command: {}
+                f:env:
+                  k:{"name":"PASSWORD"}:
+                    .: {}
+                    f:name: {}
+                    f:valueFrom:
+                      f:secretKeyRef: {}
+                f:image: {}
+                f:name: {}
+                f:resources:
+                  f:requests:
+                    f:cpu: {}
+                    f:memory: {}
+            f:serviceAccountName: {}
+    manager: helm
+    operation: Apply
+    time: "2026-10-20T10:03:06Z"
+  - apiVersion: apps/v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:spec:
+        f:replicas: {}
+    manager: k3s
+    operation: Update
+    subresource: scale
+  - apiVersion: apps/v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:annotations:
+          f:deployment.kubernetes.io/revision: {}
+      f:status:
+        f:availableReplicas: {}
+        f:conditions:
+          .: {}
+          k:{"type":"Available"}:
+            .: {}
+            f:lastTransitionTime: {}
+            f:lastUpdateTime: {}
+            f:message: {}
+            f:reason: {}
+            f:status: {}
+            f:type: {}
+          k:{"type":"Progressing"}:
+            .: {}
+            f:lastTransitionTime: {}
+            f:lastUpdateTime: {}
+            f:message: {}
+            f:reason: {}
+            f:status: {}
+            f:type: {}
+        f:observedGeneration: {}
+        f:readyReplicas: {}
+        f:replicas: {}
+        f:terminatingReplicas: {}
+        f:updatedReplicas: {}
+    manager: k3s
+    operation: Update
+    subresource: status
+    time: "2026-10-20T10:03:22Z"
+  name: shop-worker
+  namespace: shop
+  resourceVersion: "653"
+  uid: df9992a7-fba5-4df2-af3f-04c27737b2b4
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: worker
+      app.kubernetes.io/instance: shop
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: worker
+        app.kubernetes.io/instance: shop
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - while true; do sleep 30; done
+        env:
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: shop-credentials
+        image: busybox:1.37
+        imagePullPolicy: IfNotPresent
+        name: worker
+        resources:
+          requests:
+            cpu: 50m
+            memory: 16Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: shop
+      serviceAccountName: shop
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 2
+  conditions:
+  - lastTransitionTime: "2026-10-20T10:03:06Z"
+    lastUpdateTime: "2026-10-20T10:03:15Z"
+    message: ReplicaSet "shop-worker-55987f6df5" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2026-10-20T10:03:22Z"
+    lastUpdateTime: "2026-10-20T10:03:22Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 2
+  readyReplicas: 2
+  replicas: 2
+  terminatingReplicas: 0
+  updatedReplicas: 2

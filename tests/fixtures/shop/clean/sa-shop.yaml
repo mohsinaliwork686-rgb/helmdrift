@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    meta.helm.sh/release-name: shop
+    meta.helm.sh/release-namespace: shop
+  creationTimestamp: "2026-10-20T10:03:06Z"
+  labels:
+    app.kubernetes.io/instance: shop
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: shop
+    helm.sh/chart: shop-0.1.0
+  managedFields:
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:annotations:
+          f:meta.helm.sh/release-name: {}
+          f:meta.helm.sh/release-namespace: {}
+        f:labels:
+          f:app.kubernetes.io/instance: {}
+          f:app.kubernetes.io/managed-by: {}
+          f:app.kubernetes.io/name: {}
+          f:helm.sh/chart: {}
+    manager: helm
+    operation: Apply
+    time: "2026-10-20T10:03:06Z"
+  name: shop
+  namespace: shop
+  resourceVersion: "501"
+  uid: 3f6e3a34-41f3-433b-99be-b46ced143f7e
