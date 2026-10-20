@@ -64,13 +64,13 @@ The design target for the output (Friday replaces this with real output):
 ```text
 Deployment/api
   ~ spec.replicas                               chart 3            live 7
-      last set by kubectl-scale, 2026-10-19 02:13 UTC
+      owned by kubectl (scale), no time recorded
   ~ spec.template.spec.containers[name=api].image
                                                 chart api:1.4.0    live api:1.3.9-hotfix
-      last set by kubectl-set, 2026-10-19 02:15 UTC
+      owned by kubectl-set, last write 2026-10-19 02:15 UTC
   + spec.template.spec.containers[name=api].env[name=DEBUG]
                                                 live value "true"
-      added by kubectl-edit, 2026-10-19 02:16 UTC
+      added by kubectl-edit, last write 2026-10-19 02:16 UTC
 
 ConfigMap/api-config
   ~ data.LOG_LEVEL                              chart info         live debug
@@ -119,13 +119,11 @@ except where noted, and each has its own tests.
 4. **Fields the chart sets are compared exactly.** If the chart says it, the cluster must match.
 5. **Fields only the cluster has are the hard part.** Most are defaults the API server filled in,
    and they must be ignored. Some were added by a person, and they are exactly the drift worth
-   finding. Two ways to tell them apart:
-   - **The bet, proved or disproved on Tuesday:** `managedFields` records which tool last set each
-     field. A value filled in by defaulting should belong to no tool at all, while a field added by
-     `kubectl edit` belongs to `kubectl-edit`. If that holds on a real cluster, the cluster itself
-     says which live-only fields are additions, and no defaults list is needed for them.
-   - **The fallback, kept either way:** a list of known defaults per kind (data), used when an
-     object has no `managedFields`, and for anything the bet does not cover.
+   finding. `managedFields` tells them apart, as tested on Tuesday (below): a defaulted field
+   belongs to no tool at all, while a field someone added belongs to whatever added it. So a
+   live-only field is reported only when a tool other than the chart's owns it.
+   **The fallback, kept either way:** a list of known defaults per kind (data), used when an
+   object has no `managedFields`.
 6. **The ignore file is applied last** (section 8), built-in rules first, then the user's.
 
 Two special cases, decided now:
@@ -136,6 +134,31 @@ Two special cases, decided now:
 - **Secret values are never printed**, in any format. A changed Secret key is reported as
   `data.password  changed (value hidden)`. A drift report pasted into a CI log must not leak
   credentials. This is tested, not just intended.
+
+### Settled on Tuesday, on a real cluster
+
+Kubernetes 1.36.2 on k3s, the `examples/shop` chart installed with Helm 4.2.2, then changed by hand.
+The fixtures in `tests/fixtures/shop/` are those objects, unedited.
+
+- **Helm 4 used server-side apply.** Its manager is `helm`, operation `Apply`.
+- **All 20 server defaults on the web Deployment belong to no manager**: `imagePullPolicy`,
+  `dnsPolicy`, the probe timings, `terminationGracePeriodSeconds`, the strategy, and so on.
+- **Each hand edit belongs to the tool that made it:**
+
+  | What was run | Manager recorded | What it now owns |
+  |--------------|------------------|------------------|
+  | `kubectl scale` | `kubectl`, through the `scale` subresource, **with no time** | `spec.replicas` |
+  | `kubectl set image`, `kubectl set env` | `kubectl-set` | the image; the added `DEBUG` variable |
+  | `kubectl annotate` | `kubectl-annotate` | the added annotation |
+  | `kubectl edit` | `kubectl-edit` | the memory limit; the ConfigMap's `LOG_LEVEL` |
+  | `kubectl patch` | `kubectl-patch` | the Secret's password |
+  | the autoscaler | `k3s` (on other clusters, `kube-controller-manager`), through `scale`, no time | the worker's `spec.replicas` |
+
+- **The controller owns bookkeeping too**: `deployment.kubernetes.io/revision` belongs to `k3s`,
+  so that annotation stays on the bookkeeping list.
+- **A manager's time is when it last wrote to the object, not to that field.** `kubectl-set` set
+  the image and the variable within a second of each other and records one time for both. The
+  report says "last write by", not "changed at", and shows no time when none is recorded.
 
 ## 7. Who changed it
 
@@ -150,8 +173,8 @@ reports it: *last set by kubectl-scale, 02:13 UTC*. This turns "something change
 ran `kubectl scale` at 2am", which is what an on-call engineer actually needs. A field removed by
 hand has no owner left to report, and says so.
 
-The managers that count as "the chart" default to `helm` and can be extended with `--manager`.
-Tuesday checks the exact names Helm 4 records, on a real cluster, before any of this is relied on.
+The managers that count as "the chart" default to `helm` (what Helm 4 records, checked on
+Tuesday) and can be extended with `--manager`.
 
 ## 8. The ignore file
 
