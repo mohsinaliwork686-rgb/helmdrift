@@ -121,6 +121,11 @@ def test_wildcards_parse():
         ("env[name=*]", "env[0]", False),
         ("spec.*.image", "spec.web.image", True),
         ("spec.containers[name=web].image", "spec.containers", False),
+        ("**.imagePullPolicy", "spec.template.spec.containers[name=web].imagePullPolicy", True),
+        ("**.containers[*].image", "spec.jobTemplate.spec.template.spec.containers[0].image", True),
+        ("**.containers[*].image", "spec.containers[name=web].command", False),
+        ("spec.**.dnsPolicy", "spec.dnsPolicy", True),
+        ("**", "anything.at.all", True),
     ],
 )
 def test_covers(pattern, path, expected):

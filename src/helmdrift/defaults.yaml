@@ -1,0 +1,114 @@
+# helmdrift's built-in rules. Paths use the same syntax as the report.
+# Your own rules go in an ignore file (--ignore-file), which uses the same entry format.
+
+# Removed from both sides before comparing. Bookkeeping, never drift.
+bookkeeping:
+  - path: status
+  - path: metadata.managedFields        # read first, to say who changed what
+  - path: metadata.uid
+  - path: metadata.resourceVersion
+  - path: metadata.generation
+  - path: metadata.creationTimestamp
+  - path: metadata.selfLink
+  - path: metadata.namespace            # part of the identity, compared when pairing objects
+  - path: metadata.ownerReferences
+  - path: metadata.finalizers
+  - path: metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]
+  - path: metadata.annotations["deployment.kubernetes.io/revision"]
+  - path: metadata.annotations["meta.helm.sh/release-name"]
+  - path: metadata.annotations["meta.helm.sh/release-namespace"]
+  - path: "**.template.metadata.annotations[\"kubectl.kubernetes.io/restartedAt\"]"
+    reason: written by kubectl rollout restart; a restart is not a change of configuration
+  - path: "**.template.metadata.creationTimestamp"
+
+# How entries of a list are matched: by the first of these keys every entry has. A list whose
+# name is not here, or whose entries lack the key, is matched by position.
+list_keys:
+  containers: [name]
+  initContainers: [name]
+  ephemeralContainers: [name]
+  env: [name]
+  volumes: [name]
+  volumeMounts: [mountPath]
+  volumeDevices: [devicePath]
+  ports: [containerPort, port]          # containers key ports by containerPort, Services by port
+  imagePullSecrets: [name]
+  hostAliases: [ip]
+  topologySpreadConstraints: [topologyKey]
+  resourceClaims: [name]
+  conditions: [type]
+  secrets: [name]
+
+# Values the API server fills in. When an object carries managedFields, helmdrift does not need
+# this list: a defaulted field belongs to no manager. It is the fallback for objects without them.
+# Where a default has a known value, the rule only matches that value, so a value someone set by
+# hand still shows up. Rules without a value match whatever the server chose (an allocated IP).
+defaults:
+  - {kind: Deployment, path: spec.progressDeadlineSeconds, value: 600}
+  - {kind: [Deployment, StatefulSet, DaemonSet], path: spec.revisionHistoryLimit, value: 10}
+  - {kind: Deployment, path: spec.strategy.type, value: RollingUpdate}
+  - {kind: Deployment, path: spec.strategy.rollingUpdate.maxSurge, value: "25%"}
+  - {kind: Deployment, path: spec.strategy.rollingUpdate.maxUnavailable, value: "25%"}
+  - {kind: [StatefulSet, DaemonSet], path: spec.updateStrategy.type, value: RollingUpdate}
+  - {kind: StatefulSet, path: spec.updateStrategy.rollingUpdate.partition, value: 0}
+  - {kind: DaemonSet, path: spec.updateStrategy.rollingUpdate.maxUnavailable, value: 1}
+  - {kind: DaemonSet, path: spec.updateStrategy.rollingUpdate.maxSurge, value: 0}
+  - {kind: StatefulSet, path: spec.podManagementPolicy, value: OrderedReady}
+  - {kind: StatefulSet, path: spec.persistentVolumeClaimRetentionPolicy.whenDeleted, value: Retain}
+  - {kind: StatefulSet, path: spec.persistentVolumeClaimRetentionPolicy.whenScaled, value: Retain}
+  - {kind: Job, path: spec.backoffLimit, value: 6}
+  - {kind: Job, path: spec.completionMode, value: NonIndexed}
+  - {kind: Job, path: spec.completions, value: 1}
+  - {kind: Job, path: spec.parallelism, value: 1}
+  - {kind: Job, path: spec.suspend, value: false}
+  - {kind: Job, path: spec.podReplacementPolicy, value: TerminatingOrFailed}
+  - {kind: Job, path: spec.selector}
+  - {kind: Job, path: "spec.template.metadata.labels[\"batch.kubernetes.io/controller-uid\"]"}
+  - {kind: Job, path: "spec.template.metadata.labels[\"batch.kubernetes.io/job-name\"]"}
+  - {kind: Job, path: "spec.template.metadata.labels[\"controller-uid\"]"}
+  - {kind: Job, path: "spec.template.metadata.labels[\"job-name\"]"}
+  - {kind: CronJob, path: spec.concurrencyPolicy, value: Allow}
+  - {kind: CronJob, path: spec.failedJobsHistoryLimit, value: 1}
+  - {kind: CronJob, path: spec.successfulJobsHistoryLimit, value: 3}
+  - {kind: CronJob, path: spec.suspend, value: false}
+  - {path: "**.dnsPolicy", value: ClusterFirst}
+  - {path: "**.template.spec.restartPolicy", value: Always}
+  - {path: "**.schedulerName", value: default-scheduler}
+  - {path: "**.terminationGracePeriodSeconds", value: 30}
+  - {path: "**.serviceAccount"}         # the deprecated twin of serviceAccountName, copied from it
+  - {path: "**.enableServiceLinks", value: true}
+  - {path: "**.preemptionPolicy", value: PreemptLowerPriority}
+  - {path: "**.priority", value: 0}
+  - {path: "**.containers[*].imagePullPolicy", value: [IfNotPresent, Always]}
+  - {path: "**.containers[*].terminationMessagePath", value: /dev/termination-log}
+  - {path: "**.containers[*].terminationMessagePolicy", value: File}
+  - {path: "**.containers[*].ports[*].protocol", value: TCP}
+  - {path: "**.initContainers[*].imagePullPolicy", value: [IfNotPresent, Always]}
+  - {path: "**.initContainers[*].terminationMessagePath", value: /dev/termination-log}
+  - {path: "**.initContainers[*].terminationMessagePolicy", value: File}
+  - {path: "**.*Probe.failureThreshold", value: 3}
+  - {path: "**.*Probe.periodSeconds", value: 10}
+  - {path: "**.*Probe.successThreshold", value: 1}
+  - {path: "**.*Probe.timeoutSeconds", value: 1}
+  - {path: "**.*Probe.httpGet.scheme", value: HTTP}
+  - {path: "**.volumes[*].configMap.defaultMode", value: 420}
+  - {path: "**.volumes[*].secret.defaultMode", value: 420}
+  - {path: "**.volumes[*].projected.defaultMode", value: 420}
+  - {path: "**.env[*].valueFrom.fieldRef.apiVersion", value: v1}
+  - {kind: Service, path: spec.clusterIP}
+  - {kind: Service, path: spec.clusterIPs}
+  - {kind: Service, path: spec.ipFamilies}
+  - {kind: Service, path: spec.ipFamilyPolicy, value: SingleStack}
+  - {kind: Service, path: spec.internalTrafficPolicy, value: Cluster}
+  - {kind: Service, path: spec.externalTrafficPolicy, value: Cluster}
+  - {kind: Service, path: spec.sessionAffinity, value: None}
+  - {kind: Service, path: spec.type, value: ClusterIP}
+  - {kind: Service, path: "spec.ports[*].protocol", value: TCP}
+  - {kind: Service, path: "spec.ports[*].targetPort"}   # copied from the port when not set
+  - {kind: Service, path: "spec.ports[*].nodePort"}     # allocated
+  - {kind: Service, path: spec.allocateLoadBalancerNodePorts, value: true}
+  - {kind: PersistentVolumeClaim, path: spec.volumeMode, value: Filesystem}
+  - {kind: PersistentVolumeClaim, path: spec.volumeName}
+  - {kind: PersistentVolumeClaim, path: spec.storageClassName}
+  - {kind: Secret, path: type, value: Opaque}
+  - {kind: HorizontalPodAutoscaler, path: spec.behavior}

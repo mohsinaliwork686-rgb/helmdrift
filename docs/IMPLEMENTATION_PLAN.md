@@ -123,7 +123,8 @@ except where noted, and each has its own tests.
    belongs to no tool at all, while a field someone added belongs to whatever added it. So a
    live-only field is reported only when a tool other than the chart's owns it.
    **The fallback, kept either way:** a list of known defaults per kind (data), used when an
-   object has no `managedFields`.
+   object has no `managedFields`. Where a default has a known value, the rule matches only that
+   value: `terminationGracePeriodSeconds: 30` is a default, `120` is someone's decision.
 6. **The ignore file is applied last** (section 8), built-in rules first, then the user's.
 
 Two special cases, decided now:

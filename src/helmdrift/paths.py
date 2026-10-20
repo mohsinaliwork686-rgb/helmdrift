@@ -14,7 +14,8 @@ A path is a tuple of segments:
 
 Patterns, used by the ignore file, are paths whose segments may contain `*`: `containers[*]`
 matches any entry, `env[name=OTEL_*]` any variable whose name starts with `OTEL_`, and
-`annotations["example.com/*"]` any annotation under that prefix.
+`annotations["example.com/*"]` any annotation under that prefix. A `**` segment matches any number
+of segments, so `**.imagePullPolicy` finds the field at any depth.
 """
 
 from __future__ import annotations
@@ -162,11 +163,18 @@ def segment_matches(pattern: Segment, segment: Segment) -> bool:
     return False
 
 
+#: Matches any number of segments, including none.
+ANY_DEPTH = Field("**")
+
+
 def covers(pattern: Path, path: Path) -> bool:
     """True when the pattern matches the path or one of its parents.
 
     Ignoring `metadata.annotations` ignores every annotation under it.
     """
-    if len(pattern) > len(path):
-        return False
-    return all(segment_matches(p, s) for p, s in zip(pattern, path, strict=False))
+    if not pattern:
+        return True
+    head, rest = pattern[0], pattern[1:]
+    if head == ANY_DEPTH:
+        return any(covers(rest, path[i:]) for i in range(len(path) + 1))
+    return bool(path) and segment_matches(head, path[0]) and covers(rest, path[1:])
