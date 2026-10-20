@@ -23,7 +23,7 @@ so a raw diff shows hundreds of differences and none of them matter.
 - **Strips the noise.** Bookkeeping fields, server-filled defaults, and values that only differ in
   form (`0.5` CPU is `500m`) are not drift. What is left is what someone changed.
 - **Says who changed it.** Kubernetes records which tool last set each field. `helmdrift` reads
-  that record and reports *last set by kubectl-edit, 02:16 UTC* next to each difference.
+  that record and reports *owned by kubectl-edit, last write 02:16 UTC* next to each difference.
 - **Matches list items by name,** so reordering containers is not drift, and a changed environment
   variable is reported by its name, not by its position.
 - **Never prints Secret values,** in any output format.

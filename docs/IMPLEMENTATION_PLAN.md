@@ -169,7 +169,7 @@ format where `f:` marks a field, `k:{...}` a list item picked by its key, `v:` a
 by value, and `i:` a list item picked by position.
 
 For each difference, `helmdrift` walks that structure to find the manager that owns the path, and
-reports it: *last set by kubectl-scale, 02:13 UTC*. This turns "something changed" into "someone
+reports it: *owned by kubectl (scale)*, or *owned by kubectl-edit, last write 02:16 UTC*. This turns "something changed" into "someone
 ran `kubectl scale` at 2am", which is what an on-call engineer actually needs. A field removed by
 hand has no owner left to report, and says so.
 
