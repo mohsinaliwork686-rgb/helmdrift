@@ -1,0 +1,18 @@
+# A post-install hook. It is not a long-lived object, so helmdrift must leave it out.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-welcome
+  labels:
+    {{- include "shop.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: welcome
+          image: busybox:1.37
+          command: ["echo", "shop is installed"]

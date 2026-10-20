@@ -1,0 +1,6 @@
+apiVersion: v2
+name: shop
+description: A small sample app for trying helmdrift. Two workloads, a Service, a ConfigMap and a Secret.
+type: application
+version: 0.1.0
+appVersion: "1.27"

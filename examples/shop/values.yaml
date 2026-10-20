@@ -1,0 +1,25 @@
+web:
+  replicas: 2
+  image: nginx:1.27-alpine
+  mode: production
+  resources:
+    requests: {cpu: 0.1, memory: 64Mi}     # written as 0.1; the cluster stores 100m
+    limits: {cpu: 0.5, memory: 128Mi}
+
+worker:
+  replicas: 1
+  image: busybox:1.37
+  autoscaling:
+    enabled: true
+    minReplicas: 2                          # the autoscaler raises replicas above the chart's 1
+    maxReplicas: 3
+
+config:
+  logLevel: info
+  featureFlags: search,checkout
+
+credentials:
+  password: not-a-real-password            # sample data only
+
+metrics:
+  enabled: true
