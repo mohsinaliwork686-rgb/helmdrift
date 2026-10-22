@@ -138,16 +138,24 @@ def helm_args(context: str | None, kubeconfig: str | None) -> list[str]:
     return args
 
 
+#: The helm binary, or a command that runs it (tests pass ["python", "fake_helm.py"]).
+Helm = str | Sequence[str]
+
+
+def _helm(helm: Helm) -> list[str]:
+    return [helm] if isinstance(helm, str) else list(helm)
+
+
 def render_chart(
     chart: str,
     release: str,
     namespace: str,
     values_files: Sequence[str] = (),
     set_values: Sequence[str] = (),
-    helm: str = "helm",
+    helm: Helm = "helm",
 ) -> list[Resource]:
     """What the chart on disk renders to, with these values. Needs no cluster."""
-    command = [helm, "template", release, chart, "--namespace", namespace]
+    command = [*_helm(helm), "template", release, chart, "--namespace", namespace]
     for path in values_files:
         command += ["--values", path]
     for assignment in set_values:
@@ -160,10 +168,10 @@ def render_release(
     namespace: str,
     context: str | None = None,
     kubeconfig: str | None = None,
-    helm: str = "helm",
+    helm: Helm = "helm",
 ) -> list[Resource]:
     """What Helm applied at the release's last install or upgrade."""
-    command = [helm, "get", "manifest", release, "--namespace", namespace]
+    command = [*_helm(helm), "get", "manifest", release, "--namespace", namespace]
     command += helm_args(context, kubeconfig)
     return parse_manifest(_run(command), namespace)
 
@@ -175,5 +183,7 @@ def _run(command: list[str]) -> str:
         raise RenderError(f"{command[0]!r} was not found; install Helm or pass --helm") from None
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip() or f"exit code {result.returncode}"
-        raise RenderError(f"{' '.join(command[:3])} failed: {detail}")
+        verb = next(i for i, part in enumerate(command) if part in ("template", "get"))
+        what = " ".join(["helm", *command[verb : verb + (2 if command[verb] == "get" else 1)]])
+        raise RenderError(f"{what} failed: {detail}")
     return result.stdout

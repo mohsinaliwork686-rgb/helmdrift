@@ -122,22 +122,15 @@ def test_a_missing_helm_binary_is_explained():
 
 
 def fake_helm(tmp_path, stdout="", stderr="", code=0):
-    """A stand-in `helm` that records its arguments and prints what it is told to."""
-    script = tmp_path / "helm.py"
+    """A stand-in `helm`, run by the current Python on every OS, that records its arguments."""
+    script = tmp_path / "fake_helm.py"
     log = tmp_path / "args.txt"
     script.write_text(
         "import sys\n"
         f"open({str(log)!r}, 'w').write('\\n'.join(sys.argv[1:]))\n"
         f"sys.stdout.write({stdout!r}); sys.stderr.write({stderr!r}); sys.exit({code})\n"
     )
-    if sys.platform == "win32":
-        wrapper = tmp_path / "helm.cmd"
-        wrapper.write_text(f'@"{sys.executable}" "{script}" %*\n')
-    else:
-        wrapper = tmp_path / "helm"
-        wrapper.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{script}" "$@"\n')
-        wrapper.chmod(0o755)
-    return str(wrapper), log
+    return [sys.executable, str(script)], log
 
 
 def test_render_chart_passes_values_and_sets(tmp_path):
@@ -179,7 +172,7 @@ def test_render_release_uses_the_given_cluster(tmp_path):
 
 def test_helm_failing_carries_its_message(tmp_path):
     helm, _ = fake_helm(tmp_path, stderr="Error: release: not found", code=1)
-    with pytest.raises(RenderError, match="release: not found"):
+    with pytest.raises(RenderError, match="helm get manifest failed: Error: release: not found"):
         render_release("ghost", "prod", helm=helm)
 
 
