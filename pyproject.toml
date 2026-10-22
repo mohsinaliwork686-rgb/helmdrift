@@ -51,3 +51,8 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+# Said outright, so import sorting is the same everywhere instead of depending on what each
+# machine has installed.
+known-first-party = ["helmdrift", "tests"]

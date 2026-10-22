@@ -1,12 +1,12 @@
 import base64
 
 import pytest
-from tests.conftest import load_desired, load_live
 
 from helmdrift.normalise import leaves, normalise
 from helmdrift.paths import Field, Index, format_path, parse_path
 from helmdrift.quantity import same_quantity
 from helmdrift.render import Resource, identity_of
+from tests.conftest import load_desired, load_live
 
 
 def resource(body):
