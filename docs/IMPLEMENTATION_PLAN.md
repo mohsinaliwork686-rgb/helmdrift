@@ -308,9 +308,11 @@ so the noise in them is real noise, not noise I imagined.
 
 ## 14. Definition of done
 
-- [ ] Public repo, description and topics
-- [ ] This plan, committed before the code
-- [ ] README with the problem, real output from a real cluster, the ignore file, the read-only Role, and non-goals
-- [ ] Every row of the test plan covered; unit tests need no cluster
-- [ ] CI green on three OSes, plus the real-cluster job
-- [ ] At least 10 commits, one logical change each
+Shipped Thursday 22 October 2026, a day early: Friday was a day off.
+
+- [x] Public repo, description and topics
+- [x] This plan, committed before the code
+- [x] README with the problem, real output from a real cluster, the ignore file, the read-only Role, and non-goals
+- [x] Every row of the test plan covered; unit tests need no cluster
+- [x] CI green on three OSes, plus the real-cluster job
+- [x] At least 10 commits, one logical change each
