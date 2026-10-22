@@ -90,6 +90,7 @@ cluster unreachable). CI can then tell "drifted" apart from "broken".
 |------|--------|-------------|
 | `--chart PATH` | `helm template` on the chart with the given values | You want to know whether the cluster matches the chart as it is *now* |
 | no `--chart` | `helm get manifest`: what Helm actually applied at the last install or upgrade | You want pure drift: what changed by hand since the last deploy, independent of chart edits since |
+| `--manifest FILE` (or `-`) | An already rendered manifest. Added on Thursday | A pipeline already runs `helm template`; pipe it in. It also makes the command testable without a cluster |
 
 Both shell out to the `helm` binary rather than reimplementing templating, which would be wrong
 in a hundred small ways. Rendering then:
@@ -157,6 +158,13 @@ The fixtures in `tests/fixtures/shop/` are those objects, unedited.
 
 - **The controller owns bookkeeping too**: `deployment.kubernetes.io/revision` belongs to `k3s`,
   so that annotation stays on the bookkeeping list.
+- **With Helm 4, drift no longer gets silently wiped; it blocks the next deploy** (found on
+  Thursday). A plain `helm upgrade` on the drifted release failed: "conflicts with
+  `kubectl-set`: `.spec.template.spec.containers[name="web"].image`", and, for the autoscaled
+  worker, "conflict with `k3s` with subresource `scale`: `.spec.replicas`". The managers named in
+  that error are the ones helmdrift reports, so it shows what will block a deploy before it does.
+  `--force-conflicts` takes changed fields back, but fields another tool *added* stay: they were
+  never Helm's to remove. helmdrift still reports them afterwards.
 - **A manager's time is when it last wrote to the object, not to that field.** `kubectl-set` set
   the image and the variable within a second of each other and records one time for both. The
   report says "last write by", not "changed at", and shows no time when none is recorded.
