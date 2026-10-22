@@ -43,7 +43,7 @@ $ helmdrift --release api --namespace prod --chart ./charts/api -f values-prod.y
 | Mon | Plan and README | done |
 | Tue | A real throwaway cluster and real fixtures; rendering, rules and normalisation | done |
 | Wed | Who changed what, the diff, reading the cluster | done |
-| Thu | Output, the CLI, CI including a real-cluster job | |
+| Thu | Output, the CLI, CI including a real-cluster job | done |
 | Fri | Demo, README with real output, publish | |
 
 ## Non-goals
